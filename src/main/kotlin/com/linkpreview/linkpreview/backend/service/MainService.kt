@@ -10,6 +10,26 @@ import org.openqa.selenium.chrome.ChromeOptions
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
+enum class OS {
+    WINDOWS, LINUX, MAC, SOLARIS
+}
+
+fun getOS(): OS? {
+    val os = System.getProperty("os.name").toLowerCase()
+    return when {
+        os.contains("win") -> {
+            OS.WINDOWS
+        }
+        os.contains("nix") || os.contains("nux") || os.contains("aix") -> {
+            OS.LINUX
+        }
+        os.contains("mac") -> {
+            OS.MAC
+        }
+        else -> null
+    }
+}
+
 
 @Service
 class MainService {
@@ -30,7 +50,14 @@ class MainService {
     }
 
     fun setWebDriver(url: String): WebDriver {
-        System.setProperty("webdriver.chrome.driver", "driver/chromedriver");
+        var pathDriver: String = when (getOS()) {
+            // Loaded from here https://chromedriver.storage.googleapis.com/index.html?path=101.0.4951.41/
+            OS.WINDOWS -> "_win32_101.exe"
+            OS.LINUX -> "_linux64_101"
+            OS.MAC -> "_mac64_101"
+            else -> throw Exception("Unknown operating system!")
+        }
+        System.setProperty("webdriver.chrome.driver", "driver/chromedriver$pathDriver");
         val options = ChromeOptions()
         options.addArguments("--headless")
         val driver = ChromeDriver(options)
