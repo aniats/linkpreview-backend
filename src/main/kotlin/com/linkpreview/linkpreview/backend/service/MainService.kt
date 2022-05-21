@@ -9,6 +9,13 @@ import org.openqa.selenium.chrome.ChromeDriver
 import org.openqa.selenium.chrome.ChromeOptions
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URI
+import java.net.URL
+import java.nio.file.Paths
+import java.util.*
+import kotlin.collections.ArrayList
 
 enum class OS {
     WINDOWS, LINUX, MAC, SOLARIS
@@ -35,6 +42,40 @@ fun getOS(): OS? {
 class MainService {
     companion object {
         val LOG = LoggerFactory.getLogger(MainService.javaClass)
+    }
+
+    fun downloadFromUrl(url: String): String {
+        return try {
+            val uri = URI(url).path
+            val filename = Paths.get(uri).fileName.toString()
+
+            val url = URL(url)
+            val out = FileOutputStream(File(filename)) // Output file
+            out.write(url.openStream().readAllBytes())
+            out.close()
+
+            filename
+        } catch (e: Exception) {
+            LOG.error(e.message)
+            ""
+        }
+    }
+
+    fun downloadFiles(url: String): ArrayList<File> {
+        val parsedData = parseURL(url)
+        val files: ArrayList<File> = ArrayList<File>()
+        val links: ArrayList<String> = ArrayList<String>()
+
+        links.addAll(parsedData.videos)
+        links.addAll(parsedData.pictures)
+
+        for (link in links) {
+            if (link.isNotEmpty()) {
+                val fileName = downloadFromUrl(link)
+                files.add(File(fileName))
+            }
+        }
+        return files
     }
 
     fun validateURL(url: String): String {
@@ -75,12 +116,11 @@ class MainService {
         return try {
             val imgs: List<WebElement> = driver.findElements(By.tagName("img"))
             var imgsPaths = imgs.map { webElement -> webElement.getAttribute("src") }.filter { value -> value != "" && value != null }
-            if (imgsPaths.isEmpty()) return listOf("No images were found on page")
             LOG.warn("Image Paths: $imgsPaths")
             imgsPaths
         } catch (e: Exception) {
             LOG.error(e.message)
-            listOf("No images were found on page")
+            listOf()
         }
 
     }
@@ -91,11 +131,11 @@ class MainService {
             val videosPaths = videos.map {
                 it.getAttribute("src")
             }.filter { value -> value != "" && value != null }
-            if (videos.isEmpty()) return listOf("No videos were found on page")
+            LOG.warn("Video Paths: $videosPaths")
             videosPaths
         } catch (e: Exception) {
             LOG.error(e.message)
-            listOf("No videos were found on page")
+            listOf()
         }
 
     }
