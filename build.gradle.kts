@@ -38,6 +38,9 @@ dependencies {
 	// Beautiful Logger
 	implementation("io.github.microutils:kotlin-logging-jvm:2.1.21")
 
+	implementation("org.springdoc:springdoc-openapi-data-rest:1.6.0")
+	implementation("org.springdoc:springdoc-openapi-ui:1.6.0")
+	implementation("org.springdoc:springdoc-openapi-kotlin:1.6.0")
 
 	testImplementation("io.mockk:mockk:1.12.3")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
